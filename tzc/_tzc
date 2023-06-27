@@ -1,0 +1,4 @@
+#compdef tzc
+_tzc() {
+	_arguments "2: :_time_zone"
+}

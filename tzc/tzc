@@ -1,0 +1,16 @@
+tzc() {
+    usage="tzc -- convert time from any timezone to your local time.
+Usage: tzc <time> <timezone>
+
+Arguments:
+ time        12-hour (4pm) or 24-hour (16:00) time
+ timezone    Timezone for the given time, press <TAB> to view a set of valid options"
+
+
+    if [[ $# -lt 2 ]]; then
+        echo "$usage"
+        return
+    fi
+
+    echo `date -d "TZ=\"$2\" $1"`
+}
