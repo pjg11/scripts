@@ -1,6 +1,6 @@
 # `tzc`
 
-A program to convert time from any timezone to your local time.
+Convert time from any timezone to your local time.
 
 Inspired from a post by Hyde Stevenson - [CLI of the week #19](https://lazybear.io/posts/cli-of-the-week-19/).
 
@@ -13,7 +13,7 @@ Inspired from a post by Hyde Stevenson - [CLI of the week #19](https://lazybear.
 The timezone argument uses an inbuilt [completion function](https://scriptingosx.com/2019/07/moving-to-zsh-part-5-completions/), press the Tab key to view a set of valid options.
 
 ```console
-% tz 11am <TAB>
+% tzc 11am <TAB>
 +VERSION     CST6CDT      Europe/      Hongkong     MST          Portugal     WET
 Africa/      Canada/      Factory      Iceland      MST7MDT      ROC          Zulu
 America/     Chile/       GB           Indian/      Mexico/      ROK          iso3166.tab
