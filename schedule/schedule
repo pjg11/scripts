@@ -25,7 +25,7 @@ Arguments:
     pubtime=$(date -d "$2" "+%T %z")
 
 	at $2 <<- EOF
-	sed -i "7 i date: $pubdate $pubtime" $post"
+	sed -i "7 i date: $pubdate $pubtime" $post
 	mv $post _posts/$pubdate-$1
 	rm -rf _site
 	git add .
