@@ -1,0 +1,36 @@
+note() (
+
+	_usage() {
+		cat <<-EOF
+		note - Create and manage notes from the command line
+
+		Usage: 
+		  note [options] command [args]
+
+		Options:
+		  -h|--help          Show this message and exit
+
+		Commands:
+		  open [file ...]    Open new or existing note(s)
+		  grep pattern       Search through notes
+		  ls                 List all notes
+		  rm file ...        Delete note(s)
+		EOF
+	}
+	
+	if [[ ( $# -eq 0 ) || ( "$@" =~ '-h' ) || ("$@" =~ '--help') ]] ; then
+		_usage
+		return
+	fi
+	
+	dir=$HOME/notes
+	cd $dir
+		
+	case $1 in
+		"open")    shift ; micro $@ ;;
+		"ls")      fd . $dir --type file | cut -d'/' -f5- ;;
+		"grep")    rg $2 ;;
+		"rm")      shift ; rm $@ ;;
+		*)         echo "invalid option - $1" ; _usage ;;
+	esac
+)

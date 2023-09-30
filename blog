@@ -1,0 +1,83 @@
+#!/bin/zsh
+
+blog() {
+
+	_usage() {
+		cat <<-EOF
+		blog - commands to manage your Jekyll blog
+		
+		Usage:
+		  blog command [args]...
+		
+		Options:
+		  -h|--help                  Show this message and exit
+		
+		Commands:
+		  new filename               Create a new post
+		  update commitmsg           Build and deploy changes to existing content
+		  publish filename           Publish post now
+		  publish filename time      Schedule post for a later time
+		  preview                    View recent post/draft locally
+		  preview all                View entire website locally
+		EOF
+	}
+
+	if [[ ( $# -eq 0 ) || ( "$*" =~ "-h" ) || ("$*" =~ "--help") ]] ; then
+		_usage
+		return
+	fi
+
+
+	dir="$HOME/website"
+	cd $dir
+	
+	case $1 in
+
+		"new")			tee _drafts/$2.md <<- EOF ;
+						---
+						layout: post
+						title: $2
+						permalink: $2
+						description:
+						---
+						EOF
+						code $dir ;;
+
+		"preview")		code $dir ;
+
+						echo "$2"
+
+						if [[ "$2" == "all" ]]; then
+							bundle exec jekyll serve --drafts
+						else
+							bundle exec jekyll serve --drafts --limit-posts=1
+						fi ;;
+
+		"publish")		post="_drafts/$2" ;
+						title="$(sed '3q;d' $post | cut -c 8-)" ;
+					
+						date=${3:-now} ;
+						pubdate=$(date -d "$date" "+%F") ;
+						pubtime=$(date -d "$date" "+%H:00:00 %z") ;
+
+						case $date in
+					
+						"now")	sed -i "7 i date: $pubdate $pubtime" $post ;
+								mv $post _posts/$pubdate-$1 ;
+								rm -rf _site ;
+								git add . ;
+								git commit -m "new post: $2" ;
+								bundle exec jekyll build ;
+								netlify deploy --prod --dir=_site ;;
+
+						*)		at $date <<- EOF ;;
+								blog publish $2
+								reattach-to-user-namespace osascript -e 'display notification "The post, $title, is now live." with title "Published! 🎉 "'
+								EOF
+
+						esac ;;
+
+		*)				echo "invalid option - $1" ; _usage ;;
+
+	esac
+}

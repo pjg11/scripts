@@ -1,0 +1,81 @@
+#!/usr/bin/env zsh
+
+rlist() {
+
+	_usage() {
+		cat <<-EOF
+		rlist - Manage Safari's Reading List from the command line
+
+		Usage: 
+		  rlist [options] command
+
+		Options:
+		  -h|--help    Show this message and exit
+
+		Commands:
+		  init         Extracts links and saves to $HOME/notes/rlist.tsv
+		  search       Search all links and open chosen link in the browser
+		  delete       Delete chosen link from list
+		EOF
+	}
+
+	if [[ ( $# -eq 0 ) || ( "$*" =~ "-h" ) || ("$*" =~ "--help") ]] ; then
+		_usage
+		return
+	fi
+
+	i=0
+	list="$HOME/Library/Safari/Bookmarks.plist"
+	file="$HOME/notes/rlist.tsv"
+
+	case $1 in
+
+		"init")				echo -n > $file ;
+							while : ; do
+
+								title=$(/usr/libexec/PlistBuddy -c "Print :Children:3:Children:$i:URIDictionary:title" $list) \
+									2>/dev/null
+
+								link=$(/usr/libexec/PlistBuddy -c "Print :Children:3:Children:$i:URLString" $list) \
+									2>/dev/null
+
+								if [[ -z "$title" ]] ; then
+									break
+								fi
+
+								i=$((i + 1))
+
+								echo "$i  ${title//$'\n'/ }  $link" >> $file
+
+							done ;;
+
+		"search"|"delete")	selected=$(cat $file | gum filter --height=10 --cursor-text.foreground='212' --placeholder="Search" | sed 's/  /	/g') ;
+
+							if [ ! -z $selected ] ; then
+
+								IFS='	' read -r id title link <<< $selected
+
+								case $1 in
+
+								"search")	if gum confirm "Would you like to visit $title?" ; then
+												open $link
+												echo Opening $link...
+											else
+												rlist search
+											fi ;;
+						
+								"delete")	if gum confirm "Are you sure you want to delete $title?" ; then
+												/usr/libexec/PlistBuddy -c "Delete :Children:3:Children:$((id - 1))" $list
+												echo $title deleted successfully
+												rlist init
+											else
+								 				rlist delete
+								 			fi ;;
+								esac
+							
+							fi ;;
+
+		*)					echo "invalid option - $1" ; _usage ;;
+						
+	esac
+}
