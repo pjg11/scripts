@@ -53,6 +53,12 @@ blog() {
 							bundle exec jekyll serve --drafts --limit-posts=1
 						fi ;;
 
+		"update")		rm -rf _site ;
+						git add . ;
+						git commit -m "$2" ;
+						bundle exec jekyll build ;
+						netlify deploy --prod --dir=_site ;;
+
 		"publish")		post="_drafts/$2" ;
 						title="$(sed '3q;d' $post | cut -c 8-)" ;
 					
@@ -64,11 +70,7 @@ blog() {
 					
 						"now")	sed -i "6 i date: $pubdate $pubtime" $post ;
 								mv $post _posts/$pubdate-$2 ;
-								rm -rf _site ;
-								git add . ;
-								git commit -m "new post: $2" ;
-								bundle exec jekyll build ;
-								netlify deploy --prod --dir=_site ;;
+								blog update "new post: $2" ;;
 
 						*)		at $date <<- EOF ;;
 								blog publish $2
