@@ -62,8 +62,8 @@ blog() {
 
 						case $date in
 					
-						"now")	sed -i "7 i date: $pubdate $pubtime" $post ;
-								mv $post _posts/$pubdate-$1 ;
+						"now")	sed -i "6 i date: $pubdate $pubtime" $post ;
+								mv $post _posts/$pubdate-$2 ;
 								rm -rf _site ;
 								git add . ;
 								git commit -m "new post: $2" ;
