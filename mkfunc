@@ -1,0 +1,35 @@
+#!/bin/zsh
+
+mkfunc() {
+
+	if [[ ( $# -eq 0 ) || ( "$*" =~ "-h" ) || ("$*" =~ "--help") ]] ; then
+			echo "Usage: mkfunc name"
+			return
+	fi
+
+	tee $HOME/.oh-my-zsh/functions/$1 << 'EOF'
+#!/bin/zsh
+	
+() {
+	
+	_usage() {
+			
+	}
+
+	if [[ ( $# -eq 0 ) || ( "$*" =~ "-h" ) || ( "$*" =~ "--help") ]] ; then
+		_usage
+		return
+	fi		
+
+	case $1 in
+	
+	# Add other cases here
+	(*) _usage ;;
+		
+	esac
+}
+EOF
+	
+	chmod u+x $1
+	micro $1
+}
