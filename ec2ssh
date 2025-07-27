@@ -1,0 +1,24 @@
+#!/bin/sh
+# SSH into a running EC2 instance
+# Inspired by https://stevens.netmeister.org/615/awsaliases
+
+set -o errexit
+set -o nounset
+
+out=$(aws ec2 describe-instances --instance-ids "$1")
+domain=$(echo "$out" | jq -r '.Reservations[].Instances[].PublicDnsName')
+ami=$(echo "$out" | jq -r '.Reservations[].Instances[].ImageId')
+username=ec2-user
+
+aws ec2 wait instance-running --instance-ids "$1"
+
+if [ -n "$ami" ]; then
+  descr=$(aws ec2 describe-images --image-id "$ami" | jq -r '.Images[0].Description')
+  if expr "$descr" : "Canonical" >/dev/null 2>&1
+  then
+    username=ubuntu
+  fi
+fi
+
+ssh -i "$HOME"/.aws/key.pem "$username"@"$domain"
+

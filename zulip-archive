@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+# Archive one or more Zulip channels
+# Takes a file containing a list of channels, one on each line
+
+import os
+import sys
+import zulip
+
+if __name__ == "__main__":
+  try:
+    file = sys.argv[1]
+  except IndexError:
+    cmd = os.path.basename(sys.argv[0])
+    sys.exit(f"usage: {cmd} FILE")
+
+  client = zulip.Client(config_file="~/.zuliprc")
+
+  with open(file) as f:
+    channels = f.read().splitlines()
+    for c in channels:
+      channel_id = client.get_stream_id(c)["stream_id"]
+      yesno = input(f"Are you sure you want to archive \"{c}\"? (y/n) ")
+      if yesno == "y":
+        result = client.delete_stream(channel_id)
+        print(result)

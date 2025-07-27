@@ -1,0 +1,20 @@
+#!/bin/sh
+# Instead of deleting a file directly, move to a folder from where files will be cleared manually (macOS Trash) or on reboot (/tmp)
+
+set -o errexit
+set -o nounset
+
+if [ $# -lt 1 ]
+then
+  echo "Usage: $(basename "$0") PATH ..."
+  exit 1
+fi
+
+OS=$(uname)
+
+if [ "$OS" = "Darwin" ]
+then
+  mv "$@" ~/.Trash
+else
+  mv "$@" /tmp
+fi

@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+# Move all topics from one channel to another
+
+import os
+import sys
+import zulip
+from time import sleep
+
+if __name__ == "__main__":
+  try:
+    from_channel = client.get_stream_id(sys.argv[1])
+    to_channel = client.get_stream_id(sys.argv[2])
+  except IndexError:
+    cmd = os.path.basename(sys.argv[0])
+    sys.exit(f"usage: {cmd} FROM TO")
+
+  client = zulip.Client(config_file="~/.zuliprc")
+
+  topics = client.get_stream_topics(from_channel['stream_id'])
+  yesno = input(f"Move {len(topics['topics'])} topics from '{sys.argv[1]}' to '{sys.argv[2]}'? (y/n) ")
+
+  if yesno == "y":
+    for i in topics['topics']:
+      if i['name'] == "stream events" or i['name'] == 'channel events':
+        continue
+
+      print(f"Moving '{i['name']}'")
+      request = {
+        "message_id": i['max_id'],
+        "send_notification_to_new_thread": False,
+        "propagate_mode": "change_all",
+        "stream_id": to_channel['stream_id'],
+      }
+      result = client.update_message(request)
+      print(result)
+
+      # Space out notifications
+      sleep(2)

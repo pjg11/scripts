@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+# Timezone helper
+
+import datetime as dt
+import sys
+import subprocess
+import argparse
+import zoneinfo
+
+now = dt.datetime.now()
+short_fmt = "%I:%M%p %z"
+long_fmt = "%b %d %Y %-I:%M%p %z"
+input_fmts = ["%I%p", "%I %p", "%I:%M%p", "%I:%M %p"]
+
+def tz_diff(from_time, to_time):
+    # Remove timezones from both, otherwise subtracting the two
+    # returns zero as both times equate to the same Unix timestamp.
+    t1 = from_time.replace(tzinfo=None)
+    t2 = to_time.replace(tzinfo=None)
+
+    diff = (t2 - t1).total_seconds()
+    sign_str = '-' if diff < 0 else '+'
+
+    days, diff = divmod(abs(int(diff)), 86400)
+    hours, diff = divmod(diff, 3600)
+    minutes, diff = divmod(diff, 60)
+
+    if days > 0:
+        diff_str = "%s%dd%dh%dm" % (sign_str, days, hours, minutes)
+    elif hours > 0:
+        diff_str = "%s%dh%dm" % (sign_str, hours, minutes)
+    else:
+        diff_str = "%s%dm" % (sign_str, minutes)
+
+    return "%s => %s (%s)" % (from_time.strftime(short_fmt), to_time.strftime(short_fmt), diff_str)
+
+def parse_time(timestamp, tz=None):
+    for fmt in input_fmts:
+        try:
+            t = dt.datetime.strptime(timestamp, fmt)
+            break
+        except ValueError:
+            pass
+    else:
+        raise ValueError("Invalid time format, enter 12 hour time")
+
+    return t.replace(year=now.year, month=now.month, day=now.day, tzinfo=tz)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""examples:
+What's the current time in New York?
+  $ %(prog)s America/New_York
+
+If it's 2:30pm in New York, what time is it here?
+  $ %(prog)s -r 2:30pm America/New_York
+
+If it's 2:30pm here, what time is it in New York?
+  $ %(prog)s -l 2:30pm America/New_York
+"""
+    )
+
+    parser.add_argument("TZ", help="IANA timezone string (eg: America/New_York)")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-l", "--local", help="time in local timezone", metavar="TIME")
+    group.add_argument("-r", "--remote", help="time in provided timezone", metavar="TIME")
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(0)
+
+    args = parser.parse_args()
+    remote_tz = zoneinfo.ZoneInfo(args.TZ)
+
+    if args.local is not None:
+        local_time = parse_time(args.local).astimezone(None)
+        converted_time = local_time.astimezone(remote_tz)
+        print(tz_diff(local_time, converted_time))
+
+    elif args.remote is not None:
+        remote_time = parse_time(args.remote, tz=remote_tz)
+        # Setting the timezone to None converts to local time
+        converted_time = remote_time.astimezone(None)
+        print(tz_diff(remote_time, converted_time))
+
+    else:
+        converted_time = now.astimezone(remote_tz)
+        print(converted_time.strftime(long_fmt))

@@ -1,0 +1,36 @@
+!/usr/bin/env python3
+# Get date of last message posted on each channel
+
+import zulip
+from datetime import datetime
+from time import sleep
+
+if __name__ == "__main__":
+  client = zulip.Client(config_file="~/zuliprc")
+
+  channels = client.get_streams(include_all=True)['streams']
+  for c in channels:
+    # Skip private channels
+    if c['invite_only']:
+      print(f"{c['name']}: private")
+      continue
+
+  request = {
+    "anchor": "newest",
+    "num_before": 1,
+    "num_after": 0,
+    "narrow": [
+      {"operator": "channel", "operand": c['name']},
+    ],
+  }
+  result = client.get_messages(request)
+
+  try:
+    message = result['messages'][0]
+    timestamp = datetime.fromtimestamp(message['timestamp'])
+    print(f"{c['name']}: {timestamp.strftime('%F')}")
+  except KeyError:
+    print(result)
+
+  # Avoid rate limit
+  sleep(1)

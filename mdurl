@@ -1,0 +1,7 @@
+#!/usr/bin/env osascript
+# Get URL from the current Safari tab in Markdown format.
+# Inspired by https://alexwlchan.net/2020/getting-a-markdown-link-to-a-window-in-safari/
+
+tell application "Safari"
+  log "[" & name of current tab of front window & "](" & URL of current tab of front window & ")"
+end tell

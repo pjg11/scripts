@@ -1,0 +1,26 @@
+#!/bin/sh
+# Start an Amazon EC2 Instance
+# Inspired by https://stevens.netmeister.org/615/awsaliases
+
+set -o errexit
+set -o nounset
+
+case "$1" in
+  netbsd)
+    AMI=ami-03b92794664644a20
+    TYPE=t3.micro
+    ;;
+  *)
+    AMI=ami-020cba7c55df1f615
+    TYPE=t2.micro
+    ;;
+esac
+
+SUBNET=$(aws ec2 describe-subnets | jq -r '.Subnets[] | select(.AvailabilityZone == "us-east-1a").SubnetId')
+
+aws ec2 run-instances      \
+  --image-id $AMI          \
+  --instance-type $TYPE    \
+  --key-name default       \
+  --subnet-id $SUBNET      \
+| jq -r '.Instances[].InstanceId'
