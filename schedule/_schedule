@@ -1,7 +1,0 @@
-#compdef schedule
-# Replace the directory path with your local website directory
-
-_schedule() {
-	_arguments "1: :_files -W ~/website/_drafts"
-}
-
